@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGameLogic } from '../hooks/useGameLogic';
 import { getSymbol } from '../utils/themeUtils';
-import { Theme } from '@/types';
+import { Theme } from '../types';
 
 interface GameProps {
     onBackToMenu: () => void;
@@ -12,9 +12,11 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, theme }) => {
     const { board, currentPlayer, winner, winningLine, handleClick, resetGame } =
         useGameLogic();
 
+    const isDraw = board.every((cell) => cell !== null) && !winner;
+
     const getMascotExpression = () => {
         if (!winner) return '(｡◕‿◕｡)';
-        if (winner === 'draw') return '(￣▽￣*)ゞ';
+        if (isDraw) return '(￣▽￣*)ゞ';
         return '(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧';
     };
 
@@ -24,7 +26,7 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, theme }) => {
 
             <div className="status">
                 {winner
-                    ? winner === 'draw'
+                    ? isDraw
                         ? "It's a draw!"
                         : `Player ${getSymbol(winner, theme)} wins!`
                     : `Current player: ${getSymbol(currentPlayer, theme)}`}

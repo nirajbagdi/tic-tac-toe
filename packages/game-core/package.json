@@ -1,0 +1,23 @@
+{
+    "name": "@repo/game-core",
+    "version": "0.0.1",
+    "private": true,
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "build": "tsup src/index.ts --format cjs,esm --dts",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "clean": "rimraf .turbo && rimraf node_modules && rimraf dist"
+    },
+    "devDependencies": {
+        "typescript": "^5.2.2",
+        "tsup": "^7.2.0",
+        "vitest": "^0.34.3",
+        "@types/node": "^20.5.7"
+    }
+}

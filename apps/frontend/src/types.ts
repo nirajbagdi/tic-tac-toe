@@ -1,6 +1,6 @@
-export type Player = 'X' | 'O';
+import { Player, Board } from '@repo/game-core';
 
-export type BoardState = (Player | null)[];
+export type { Player, Board };
 
 export type Theme =
     | 'default'

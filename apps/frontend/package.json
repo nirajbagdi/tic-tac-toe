@@ -8,6 +8,7 @@
         "build": "tsc -b && vite build"
     },
     "dependencies": {
+        "@repo/game-core": "workspace:*",
         "react": "^19.1.1",
         "react-dom": "^19.1.1"
     },
