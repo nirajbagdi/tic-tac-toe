@@ -11,8 +11,15 @@ interface GameProps {
 
 export const Game: React.FC<GameProps> = ({ onBackToMenu, theme }) => {
     const { sessionId } = useParams();
-    const { board, currentPlayer, winner, winningLine, handleClick, resetGame } =
-        useGameLogic({ existingSessionId: sessionId });
+    const {
+        board,
+        currentPlayer,
+        winner,
+        winningLine,
+        handleClick,
+        resetGame,
+        isYourTurn,
+    } = useGameLogic({ existingSessionId: sessionId });
 
     const isDraw = board.every((cell) => cell !== null) && !winner;
 
@@ -31,7 +38,9 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, theme }) => {
                     ? isDraw
                         ? "It's a draw!"
                         : `Player ${getSymbol(winner, theme)} wins!`
-                    : `Current player: ${getSymbol(currentPlayer, theme)}`}
+                    : isYourTurn
+                    ? 'Your turn!'
+                    : 'Waiting for opponent...'}
             </div>
 
             <div className="board">

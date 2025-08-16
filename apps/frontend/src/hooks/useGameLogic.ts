@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSound } from '../contexts/SoundContext';
 import { Board, Player } from '@repo/game-core';
 import { gameApi } from '../api/gameApi';
+import { useSocket } from './useSocket';
 
 interface UseGameLogicProps {
     existingSessionId?: string;
@@ -13,7 +14,10 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
     const [currentPlayer, setCurrentPlayer] = useState<Player>('X');
     const [winner, setWinner] = useState<Player | null>(null);
     const [winningLine, setWinningLine] = useState<number[] | null>(null);
+    const [isYourTurn, setIsYourTurn] = useState<boolean>(false);
     const { playPop, playWin, playDraw } = useSound();
+
+    const socket = useSocket(sessionId);
 
     useEffect(() => {
         const initGame = async () => {
@@ -23,13 +27,6 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
                     : await gameApi.createSession();
 
                 setSessionId(session.id);
-                setBoard(session.board);
-                setCurrentPlayer(session.currentPlayer);
-
-                if (session.result) {
-                    setWinner(session.result.winner ?? null);
-                    setWinningLine(session.result.line ?? null);
-                }
             } catch (error) {
                 console.error('Failed to initialize game:', error);
             }
@@ -38,25 +35,48 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
         initGame();
     }, [existingSessionId]);
 
-    const handleClick = async (index: number) => {
-        if (!sessionId || winner) return;
+    useEffect(() => {
+        if (!socket) return;
 
-        try {
-            const session = await gameApi.makeMove(sessionId, index);
+        socket.onGameJoined((data) => {
+            setBoard(data.board);
+            setCurrentPlayer(data.currentPlayer);
+            setIsYourTurn(data.currentPlayer === data.player);
+
+            if (data.result) {
+                setWinner(data.result.winner ?? null);
+                setWinningLine(data.result.line ?? null);
+            }
+        });
+
+        socket.onGameUpdated((session) => {
             setBoard(session.board);
             setCurrentPlayer(session.currentPlayer);
-            playPop();
+            setIsYourTurn(session.currentPlayer === socket.player);
 
             if (session.result) {
                 setWinner(session.result.winner ?? null);
                 setWinningLine(session.result.line ?? null);
 
-                if (session.result.isDraw) playDraw();
-                else if (session.result.winner) playWin();
+                if (session.result.isDraw) {
+                    playDraw();
+                } else if (session.result.winner) {
+                    playWin();
+                }
+            } else {
+                playPop();
             }
-        } catch (error) {
-            console.error('Failed to make move:', error);
-        }
+        });
+
+        socket.onPlayerDisconnected(() => {
+            // Handle opponent disconnection if needed
+            console.log('Opponent disconnected');
+        });
+    }, [socket, playPop, playWin, playDraw]);
+
+    const handleClick = async (index: number) => {
+        if (!sessionId || winner || !isYourTurn) return;
+        socket.makeMove(index);
     };
 
     const resetGame = async () => {
@@ -80,5 +100,6 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
         winningLine,
         handleClick,
         resetGame,
+        isYourTurn,
     };
 };
