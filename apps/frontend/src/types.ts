@@ -12,5 +12,3 @@ export type Theme =
     | 'flowers'
     | 'weather'
     | 'fruits';
-
-export type Screen = 'home' | 'game' | 'themes' | 'about' | 'settings';

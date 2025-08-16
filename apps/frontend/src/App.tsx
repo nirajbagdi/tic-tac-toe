@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Screen, Theme } from './types';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Theme } from './types';
 import { HomeScreen } from './components/HomeScreen';
 import { Game } from './components/Game';
 import { ThemeScreen } from './components/ThemeScreen';
@@ -7,31 +8,48 @@ import { AboutScreen } from './components/AboutScreen';
 import { Settings } from './components/Settings';
 
 function App() {
-    const [screen, setScreen] = useState<Screen>('home');
     const [theme, setTheme] = useState<Theme>('default');
+    const navigate = useNavigate();
 
     return (
         <div className="app">
-            {screen === 'home' && (
-                <HomeScreen
-                    onPlay={() => setScreen('game')}
-                    onThemes={() => setScreen('themes')}
-                    onSettings={() => setScreen('settings')}
-                    onAbout={() => setScreen('about')}
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        <HomeScreen
+                            onPlay={() => navigate('/game')}
+                            onThemes={() => navigate('/themes')}
+                            onSettings={() => navigate('/settings')}
+                            onAbout={() => navigate('/about')}
+                        />
+                    }
                 />
-            )}
-            {screen === 'game' && (
-                <Game theme={theme} onBackToMenu={() => setScreen('home')} />
-            )}
-            {screen === 'themes' && (
-                <ThemeScreen
-                    theme={theme}
-                    onThemeChange={setTheme}
-                    onBack={() => setScreen('home')}
+                <Route
+                    path="/game"
+                    element={
+                        <Game theme={theme} onBackToMenu={() => navigate('/')} />
+                    }
                 />
-            )}
-            {screen === 'about' && <AboutScreen onBack={() => setScreen('home')} />}
-            {screen === 'settings' && <Settings onBack={() => setScreen('home')} />}
+                <Route
+                    path="/themes"
+                    element={
+                        <ThemeScreen
+                            theme={theme}
+                            onThemeChange={setTheme}
+                            onBack={() => navigate('/')}
+                        />
+                    }
+                />
+                <Route
+                    path="/about"
+                    element={<AboutScreen onBack={() => navigate('/')} />}
+                />
+                <Route
+                    path="/settings"
+                    element={<Settings onBack={() => navigate('/')} />}
+                />
+            </Routes>
         </div>
     );
 }
