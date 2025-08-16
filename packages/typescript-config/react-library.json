@@ -1,7 +1,17 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "React App",
     "extends": "./base.json",
     "compilerOptions": {
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "module": "ESNext",
+        "target": "es6",
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "noEmit": true
     }
 }
