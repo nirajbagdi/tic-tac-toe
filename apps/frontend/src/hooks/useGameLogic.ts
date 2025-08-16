@@ -1,40 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSound } from '../contexts/SoundContext';
-import { Board, Player, getWinner as checkWinner, nextState } from '@repo/game-core';
+import { Board, Player } from '@repo/game-core';
+import { gameApi } from '../api/gameApi';
 
 export const useGameLogic = () => {
+    const [sessionId, setSessionId] = useState<string | null>(null);
     const [board, setBoard] = useState<Board>(Array(9).fill(null));
     const [currentPlayer, setCurrentPlayer] = useState<Player>('X');
     const [winner, setWinner] = useState<Player | null>(null);
     const [winningLine, setWinningLine] = useState<number[] | null>(null);
     const { playPop, playWin, playDraw } = useSound();
 
-    const handleClick = (index: number) => {
-        if (winner) return;
+    useEffect(() => {
+        const initGame = async () => {
+            try {
+                const session = await gameApi.createSession();
+                setSessionId(session.id);
+                setBoard(session.board);
+                setCurrentPlayer(session.currentPlayer);
+            } catch (error) {
+                console.error('Failed to initialize game:', error);
+            }
+        };
 
-        const newBoard = nextState(board, index, currentPlayer);
-        if (!newBoard) return; // Invalid move
+        initGame();
+    }, []);
 
-        setBoard(newBoard);
-        playPop();
+    const handleClick = async (index: number) => {
+        if (!sessionId || winner) return;
 
-        const result = checkWinner(newBoard);
-        if (result.winner || result.isDraw) {
-            setWinner(result.winner ?? null);
-            setWinningLine(result.line ?? null);
+        try {
+            const session = await gameApi.makeMove(sessionId, index);
+            setBoard(session.board);
+            setCurrentPlayer(session.currentPlayer);
+            playPop();
 
-            if (result.isDraw) playDraw();
-            else playWin();
-        } else {
-            setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
+            if (session.result) {
+                setWinner(session.result.winner ?? null);
+                setWinningLine(session.result.line ?? null);
+
+                if (session.result.isDraw) playDraw();
+                else if (session.result.winner) playWin();
+            }
+        } catch (error) {
+            console.error('Failed to make move:', error);
         }
     };
 
-    const resetGame = () => {
-        setBoard(Array(9).fill(null));
-        setCurrentPlayer('X');
-        setWinner(null);
-        setWinningLine(null);
+    const resetGame = async () => {
+        if (!sessionId) return;
+
+        try {
+            const session = await gameApi.resetSession(sessionId);
+            setBoard(session.board);
+            setCurrentPlayer(session.currentPlayer);
+            setWinner(null);
+            setWinningLine(null);
+        } catch (error) {
+            console.error('Failed to reset game:', error);
+        }
     };
 
     return {
