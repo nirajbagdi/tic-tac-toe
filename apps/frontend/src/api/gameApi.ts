@@ -10,6 +10,15 @@ interface GameSession {
 }
 
 export const gameApi = {
+    getAllSessions: async (): Promise<GameSession[]> => {
+        const response = await fetch(`${API_URL}/sessions`);
+
+        if (!response.ok) {
+            throw new Error('Failed to get game sessions');
+        }
+
+        return response.json();
+    },
     createSession: async (): Promise<GameSession> => {
         const response = await fetch(`${API_URL}/sessions`, {
             method: 'POST',

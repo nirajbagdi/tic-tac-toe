@@ -2,6 +2,7 @@ import React from 'react';
 import { useGameLogic } from '../hooks/useGameLogic';
 import { getSymbol } from '../utils/themeUtils';
 import { Theme } from '../types';
+import { useParams } from 'react-router-dom';
 
 interface GameProps {
     onBackToMenu: () => void;
@@ -9,8 +10,9 @@ interface GameProps {
 }
 
 export const Game: React.FC<GameProps> = ({ onBackToMenu, theme }) => {
+    const { sessionId } = useParams();
     const { board, currentPlayer, winner, winningLine, handleClick, resetGame } =
-        useGameLogic();
+        useGameLogic({ existingSessionId: sessionId });
 
     const isDraw = board.every((cell) => cell !== null) && !winner;
 

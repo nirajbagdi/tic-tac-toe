@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { Theme } from './types';
 import { HomeScreen } from './components/HomeScreen';
 import { Game } from './components/Game';
@@ -18,7 +18,9 @@ function App() {
                     path="/"
                     element={
                         <HomeScreen
-                            onPlay={() => navigate('/game')}
+                            onJoinSession={(sessionId) =>
+                                navigate(`/game/${sessionId}`)
+                            }
                             onThemes={() => navigate('/themes')}
                             onSettings={() => navigate('/settings')}
                             onAbout={() => navigate('/about')}
@@ -27,6 +29,12 @@ function App() {
                 />
                 <Route
                     path="/game"
+                    element={
+                        <Game theme={theme} onBackToMenu={() => navigate('/')} />
+                    }
+                />
+                <Route
+                    path="/game/:sessionId"
                     element={
                         <Game theme={theme} onBackToMenu={() => navigate('/')} />
                     }

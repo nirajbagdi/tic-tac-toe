@@ -3,7 +3,11 @@ import { useSound } from '../contexts/SoundContext';
 import { Board, Player } from '@repo/game-core';
 import { gameApi } from '../api/gameApi';
 
-export const useGameLogic = () => {
+interface UseGameLogicProps {
+    existingSessionId?: string;
+}
+
+export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [board, setBoard] = useState<Board>(Array(9).fill(null));
     const [currentPlayer, setCurrentPlayer] = useState<Player>('X');
@@ -14,17 +18,25 @@ export const useGameLogic = () => {
     useEffect(() => {
         const initGame = async () => {
             try {
-                const session = await gameApi.createSession();
+                const session = existingSessionId
+                    ? await gameApi.getSession(existingSessionId)
+                    : await gameApi.createSession();
+
                 setSessionId(session.id);
                 setBoard(session.board);
                 setCurrentPlayer(session.currentPlayer);
+
+                if (session.result) {
+                    setWinner(session.result.winner ?? null);
+                    setWinningLine(session.result.line ?? null);
+                }
             } catch (error) {
                 console.error('Failed to initialize game:', error);
             }
         };
 
         initGame();
-    }, []);
+    }, [existingSessionId]);
 
     const handleClick = async (index: number) => {
         if (!sessionId || winner) return;

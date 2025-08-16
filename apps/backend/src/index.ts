@@ -29,6 +29,12 @@ app.get('/', (req, res) => {
     res.json({ message: 'Hello from Backend!' });
 });
 
+// Get all active sessions
+app.get('/sessions', (req, res) => {
+    const activeSessions = Array.from(sessions.values());
+    res.json(activeSessions);
+});
+
 // Create a new game session
 app.post('/sessions', (req, res) => {
     const sessionId = uuidv4();

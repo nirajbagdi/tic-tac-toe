@@ -1,18 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { SessionList } from './SessionList';
+import { gameApi } from '../api/gameApi';
 
 interface HomeScreenProps {
-    onPlay: () => void;
+    onJoinSession: (sessionId: string) => void;
     onThemes: () => void;
     onSettings: () => void;
     onAbout: () => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
-    onPlay,
+    onJoinSession,
     onThemes,
     onSettings,
     onAbout,
 }) => {
+    const [showSessionList, setShowSessionList] = useState(false);
+
+    const handleCreateGame = async () => {
+        try {
+            const session = await gameApi.createSession();
+            onJoinSession(session.id);
+        } catch (error) {
+            console.error('Failed to create game session:', error);
+        }
+    };
+
+    const handleJoinGame = (sessionId: string) => {
+        onJoinSession(sessionId);
+    };
+
+    if (showSessionList) {
+        return (
+            <SessionList
+                onJoinSession={handleJoinGame}
+                onBack={() => setShowSessionList(false)}
+            />
+        );
+    }
+
     return (
         <>
             <div className="home-mascot">
@@ -26,9 +52,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </h1>
 
             <div className="home-buttons">
-                <button className="play-button" onClick={onPlay}>
-                    Play Game
-                </button>
+                <div className="play-buttons">
+                    <button className="play-button" onClick={handleCreateGame}>
+                        Create Game
+                    </button>
+                    <button
+                        className="play-button"
+                        onClick={() => setShowSessionList(true)}
+                    >
+                        Join Game
+                    </button>
+                </div>
                 <div className="secondary-buttons">
                     <button className="secondary-button" onClick={onThemes}>
                         Themes
