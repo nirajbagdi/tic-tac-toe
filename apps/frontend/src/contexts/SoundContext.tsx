@@ -23,11 +23,11 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
     const [isSoundEnabled, setSoundEnabled] = useState(() => {
         const saved = localStorage.getItem('isSoundEnabled');
-        return saved ? JSON.parse(saved) : true;
+        return saved ? JSON.parse(saved) : false;
     });
     const [isMusicEnabled, setMusicEnabled] = useState(() => {
         const saved = localStorage.getItem('isMusicEnabled');
-        return saved ? JSON.parse(saved) : true;
+        return saved ? JSON.parse(saved) : false;
     });
 
     const popSound = useRef<HTMLAudioElement | null>(null);

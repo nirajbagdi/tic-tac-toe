@@ -79,8 +79,15 @@ export const useSocket = (sessionId: string | null) => {
         }
     };
 
+    const resetGame = () => {
+        if (socketRef.current && sessionId) {
+            socketRef.current.emit('resetGame', sessionId);
+        }
+    };
+
     return {
         makeMove,
+        resetGame,
         onGameJoined,
         onGameUpdated,
         onPlayerDisconnected,

@@ -112,6 +112,21 @@ io.on('connection', (socket) => {
         }
     );
 
+    socket.on('resetGame', (sessionId: string) => {
+        const session = sessions.get(sessionId);
+        if (!session) {
+            socket.emit('error', 'Session not found');
+            return;
+        }
+
+        session.board = Array(9).fill(null);
+        session.currentPlayer = 'X';
+        delete session.result;
+
+        sessions.set(session.id, session);
+        io.to(sessionId).emit('gameUpdated', session);
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
         // Clean up player assignments when they disconnect
@@ -150,79 +165,6 @@ app.post('/sessions', (req, res) => {
     };
     sessions.set(sessionId, session);
     res.status(201).json(session);
-});
-
-// Get session by ID
-app.get('/sessions/:id', (req, res) => {
-    const session = sessions.get(req.params.id);
-    if (!session) {
-        return res.status(404).json({ error: 'Session not found' });
-    }
-    res.json(session);
-});
-
-// Make a move in the game
-app.post('/sessions/:id/move', (req, res) => {
-    const session = sessions.get(req.params.id);
-    if (!session) {
-        return res.status(404).json({ error: 'Session not found' });
-    }
-
-    const { index } = req.body;
-    if (typeof index !== 'number' || index < 0 || index > 8) {
-        return res.status(400).json({ error: 'Invalid move index' });
-    }
-
-    if (session.result) {
-        return res.status(400).json({ error: 'Game is already finished' });
-    }
-
-    if (!isValidMove(session.board, index)) {
-        return res.status(400).json({ error: 'Invalid move' });
-    }
-
-    const newBoard = nextState(session.board, index, session.currentPlayer);
-    if (!newBoard) {
-        return res.status(400).json({ error: 'Invalid move' });
-    }
-
-    session.board = newBoard;
-    const result = getWinner(newBoard);
-
-    if (result.winner || result.isDraw) {
-        session.result = result;
-    } else {
-        session.currentPlayer = session.currentPlayer === 'X' ? 'O' : 'X';
-    }
-
-    sessions.set(session.id, session);
-    res.json(session);
-});
-
-// Reset a game session
-app.post('/sessions/:id/reset', (req, res) => {
-    const session = sessions.get(req.params.id);
-    if (!session) {
-        return res.status(404).json({ error: 'Session not found' });
-    }
-
-    session.board = Array(9).fill(null);
-    session.currentPlayer = 'X';
-    delete session.result;
-
-    sessions.set(session.id, session);
-    res.json(session);
-});
-
-// Delete a game session
-app.delete('/sessions/:id', (req, res) => {
-    const session = sessions.get(req.params.id);
-    if (!session) {
-        return res.status(404).json({ error: 'Session not found' });
-    }
-
-    sessions.delete(req.params.id);
-    res.status(204).send();
 });
 
 httpServer.listen(port, () => {

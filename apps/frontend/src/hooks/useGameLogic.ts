@@ -21,14 +21,15 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
 
     useEffect(() => {
         const initGame = async () => {
-            try {
-                const session = existingSessionId
-                    ? await gameApi.getSession(existingSessionId)
-                    : await gameApi.createSession();
-
-                setSessionId(session.id);
-            } catch (error) {
-                console.error('Failed to initialize game:', error);
+            if (existingSessionId) {
+                setSessionId(existingSessionId);
+            } else {
+                try {
+                    const session = await gameApi.createSession();
+                    setSessionId(session.id);
+                } catch (error) {
+                    console.error('Failed to create game session:', error);
+                }
             }
         };
 
@@ -79,18 +80,9 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
         socket.makeMove(index);
     };
 
-    const resetGame = async () => {
-        if (!sessionId) return;
-
-        try {
-            const session = await gameApi.resetSession(sessionId);
-            setBoard(session.board);
-            setCurrentPlayer(session.currentPlayer);
-            setWinner(null);
-            setWinningLine(null);
-        } catch (error) {
-            console.error('Failed to reset game:', error);
-        }
+    const resetGame = () => {
+        if (!sessionId || !socket) return;
+        socket.resetGame();
     };
 
     return {

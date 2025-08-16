@@ -7,6 +7,10 @@ export interface GameSession {
     board: Board;
     currentPlayer: Player;
     result?: GameResult;
+    players: {
+        X?: string;
+        O?: string;
+    };
 }
 
 export type Theme =
