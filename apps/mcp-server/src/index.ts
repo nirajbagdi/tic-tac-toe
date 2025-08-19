@@ -5,29 +5,13 @@ import fetch from 'node-fetch';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-
-type Player = 'X' | 'O';
-type Board = (Player | null)[];
+import { GameSession } from '@repo/game-core';
 
 const app = express();
 app.use(express.json());
 
 const port = process.env.PORT || 3001;
 const BACKEND_URL = 'http://localhost:3000';
-
-interface GameSession {
-    id: string;
-    board: Board;
-    currentPlayer: Player;
-    result?: {
-        winner: string | null;
-        isDraw: boolean;
-    };
-    players: {
-        X?: string;
-        O?: string;
-    };
-}
 
 const server = new McpServer({
     name: 'tic-tac-toe-server',

@@ -1,19 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Board, Player, GameResult } from '@repo/game-core';
+import { Player, GameSession } from '@/types';
 
 const SOCKET_URL = 'http://localhost:3000';
-
-interface GameSession {
-    id: string;
-    board: Board;
-    currentPlayer: Player;
-    result?: GameResult;
-    players: {
-        X?: string;
-        O?: string;
-    };
-}
 
 interface GameJoinedData extends GameSession {
     player: Player;

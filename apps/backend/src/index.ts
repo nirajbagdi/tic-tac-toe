@@ -3,14 +3,8 @@ import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import {
-    Board,
-    Player,
-    GameResult,
-    isValidMove,
-    nextState,
-    getWinner,
-} from '@repo/game-core';
+
+import { GameSession, isValidMove, nextState, getWinner } from '@repo/game-core';
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,17 +15,6 @@ const io = new Server(httpServer, {
     },
 });
 const port = process.env.PORT || 3000;
-
-interface GameSession {
-    id: string;
-    board: Board;
-    currentPlayer: Player;
-    result?: GameResult;
-    players: {
-        X?: string;
-        O?: string;
-    };
-}
 
 const sessions = new Map<string, GameSession>();
 

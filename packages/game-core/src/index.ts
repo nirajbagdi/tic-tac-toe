@@ -8,6 +8,17 @@ export type GameResult = {
     isDraw: boolean;
 };
 
+export interface GameSession {
+    id: string;
+    board: Board;
+    currentPlayer: Player;
+    result?: GameResult;
+    players: {
+        X?: string;
+        O?: string;
+    };
+}
+
 export type Coordinates = {
     row: number;
     col: number;

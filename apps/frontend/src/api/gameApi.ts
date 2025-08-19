@@ -1,4 +1,4 @@
-import { GameSession } from '../types';
+import { GameSession } from '@/types';
 
 const API_URL = 'http://localhost:3000';
 

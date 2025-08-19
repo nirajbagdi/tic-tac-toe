@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GameSession } from '../types';
+import { GameSession } from '@/types';
 import { gameApi } from '../api/gameApi';
 
 interface SessionListProps {
