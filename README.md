@@ -1,6 +1,6 @@
 # Tic-tac-toe
 
-A cute, little Tic-tac-toe game with real-time multiplayer support.
+A cute and fun, little Tic-tac-toe game with real-time multiplayer support.
 
 Includes a **Model Context Protocol (MCP) Server** that lets AI agents (like Copilot, Cursor) connect and play the game using natural language.
 
@@ -11,6 +11,10 @@ Includes a **Model Context Protocol (MCP) Server** that lets AI agents (like Cop
 -   Supports custom symbols (hearts, stars, cat, bunnies, etc.)
 -   Interactive sound effects
 -   Visual winning indicators
+
+## Demo
+
+https://github.com/user-attachments/assets/6fa9844c-0727-4eab-a1ef-6503e54016a4
 
 ## Project Structure
 
@@ -104,6 +108,6 @@ Start the MCP server and make sure the application endpoints are running.
 2. In your MCP-compatible agent interface:
 
 ```
-Ask: "Create a new Tic-tac-toe game session"
+Ask: "Let's play Tic-tac-toe!"
 Response: Will create a new session which you can join, make moves, and play against the AI opponent.
 ```
