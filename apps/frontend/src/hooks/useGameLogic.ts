@@ -61,10 +61,14 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
 
                 if (session.result.isDraw) {
                     playDraw();
+                    setWinner(null);
+                    setWinningLine(null);
                 } else if (session.result.winner) {
                     playWin();
                 }
             } else {
+                setWinner(null);
+                setWinningLine(null);
                 playPop();
             }
         });
@@ -93,5 +97,6 @@ export const useGameLogic = ({ existingSessionId }: UseGameLogicProps = {}) => {
         handleClick,
         resetGame,
         isYourTurn,
+        player: socket?.player ?? null,
     };
 };

@@ -19,14 +19,16 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, theme }) => {
         handleClick,
         resetGame,
         isYourTurn,
+        player,
     } = useGameLogic({ existingSessionId: sessionId });
 
     const isDraw = board.every((cell) => cell !== null) && !winner;
+    console.log('isDraw:', isDraw);
 
     const getMascotExpression = () => {
-        if (!winner) return '(｡◕‿◕｡)';
         if (isDraw) return '(￣▽￣*)ゞ';
-        return '(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧';
+        if (!winner) return '(｡◕‿◕｡)';
+        return winner === player ? '(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧' : '╥﹏╥';
     };
 
     return (
@@ -34,10 +36,10 @@ export const Game: React.FC<GameProps> = ({ onBackToMenu, theme }) => {
             <div className="mascot">{getMascotExpression()}</div>
 
             <div className="status">
-                {winner
-                    ? isDraw
-                        ? "It's a draw!"
-                        : `Player ${getSymbol(winner, theme)} wins!`
+                {isDraw
+                    ? "It's a draw!"
+                    : winner
+                    ? `Player ${getSymbol(winner, theme)} wins!`
                     : isYourTurn
                     ? 'Your turn!'
                     : 'Waiting for opponent...'}
