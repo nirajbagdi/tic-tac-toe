@@ -9,14 +9,14 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { GameSession } from '@repo/game-core';
 import { z } from 'zod';
 
+// Keep track of active game sessions and their sockets
+const activeGames = new Map<string, { socket: Socket; session: GameSession }>();
+
 const app = express();
 app.use(express.json());
 
 const port = process.env.PORT || 3001;
 const BACKEND_URL = 'http://localhost:3000';
-
-// Keep track of active game sessions and their sockets
-const activeGames = new Map<string, { socket: Socket; session: GameSession }>();
 
 const server = new McpServer({
     name: 'tic-tac-toe-server',
@@ -29,7 +29,6 @@ server.registerTool(
     {
         title: 'Create a new Tic-Tac-Toe Game Session',
         description: 'Creates a new game session and joins as player X',
-        inputSchema: {},
     },
     async function () {
         try {
@@ -45,7 +44,7 @@ server.registerTool(
 
             // Create socket connection
             const socket = socketIOClient(BACKEND_URL);
-
+            
             // Store the socket and session
             activeGames.set(session.id, { socket, session });
 
@@ -79,8 +78,8 @@ server.registerTool(
         },
     },
     async function (args) {
-        const { sessionId } = args;
-        const activeGame = activeGames.get(sessionId);
+        const { sessionId } = args; {
+        const activeGame = activeGames.get(params.sessionId);
         if (!activeGame) {
             throw new Error('Game session not found');
         }
@@ -97,7 +96,7 @@ server.registerTool(
                 if (updatedSession.players.O) {
                     clearTimeout(timeout);
                     activeGame.session = updatedSession;
-
+                    
                     resolve({
                         content: [
                             {
@@ -123,20 +122,14 @@ server.registerTool(
     {
         title: 'Make a Move',
         description: 'Makes a move at the specified position (0-8)',
-        inputSchema: {
-            sessionId: z.string(),
-            position: z.number().min(0).max(8),
-        },
     },
-    async function (args) {
-        const { sessionId, position } = args;
-        const activeGame = activeGames.get(sessionId);
+    async function (params: { sessionId: string; position: number }) {
+        const activeGame = activeGames.get(params.sessionId);
         if (!activeGame) {
             throw new Error('Game session not found');
         }
 
         const { socket, session } = activeGame;
-        let messages: string[] = [];
 
         return new Promise((resolve, reject) => {
             if (session.result) {
@@ -149,66 +142,37 @@ server.registerTool(
                 return;
             }
 
-            // Setup continuous game flow handler
-            const gameFlowHandler = (updatedSession: GameSession) => {
-                activeGame.session = updatedSession;
-                let boardDisplay = '';
-
-                // Display current board state
-                for (let i = 0; i < 9; i += 3) {
-                    const row = updatedSession.board
-                        .slice(i, i + 3)
-                        .map((cell) => cell || i + '')
-                        .join(' | ');
-                    boardDisplay += row + '\\n';
-                    if (i < 6) boardDisplay += '---------\\n';
-                }
-
-                messages.push(`Board state:\\n${boardDisplay}`);
-
-                if (updatedSession.result) {
-                    // Game has ended
-                    if (updatedSession.result.winner) {
-                        messages.push(
-                            `Player ${updatedSession.result.winner} wins!`
-                        );
-                    } else if (updatedSession.result.isDraw) {
-                        messages.push('Game ended in a draw!');
-                    }
-
-                    // Remove event listener since game is over
-                    socket.off('gameUpdated', gameFlowHandler);
-
-                    resolve({
-                        content: messages.map((msg) => ({
-                            type: 'text',
-                            text: msg,
-                        })),
-                    });
-                } else if (updatedSession.currentPlayer === 'X') {
-                    messages.push(`Your turn! Current board shown above.`);
-                    // Remove event listener since we need a new move
-                    socket.off('gameUpdated', gameFlowHandler);
-
-                    resolve({
-                        content: messages.map((msg) => ({
-                            type: 'text',
-                            text: msg,
-                        })),
-                    });
-                } else {
-                    messages.push(`Opponent's turn. Waiting for their move...`);
-                    // Keep listening for opponent's move
-                }
-            };
-
-            // Register the game flow handler
-            socket.on('gameUpdated', gameFlowHandler);
-
-            // Make the initial move
             socket.emit('makeMove', {
-                sessionId,
-                index: position,
+                sessionId: params.sessionId,
+                index: params.position,
+            });
+
+            socket.on('gameUpdated', (updatedSession: GameSession) => {
+                activeGame.session = updatedSession;
+                
+                let message = `Move made at position ${params.position}.`;
+                if (updatedSession.result) {
+                    if (updatedSession.result.winner) {
+                        message += ` Player ${updatedSession.result.winner} wins!`;
+                    } else if (updatedSession.result.isDraw) {
+                        message += ' Game ended in a draw!';
+                    }
+                } else {
+                    message += ' Waiting for opponent\'s move...';
+                }
+
+                resolve({
+                    content: [
+                        {
+                            type: 'text',
+                            text: message,
+                        },
+                    ],
+                });
+            });
+
+            socket.on('error', (error: string) => {
+                reject(new Error(`Game error: ${error}`));
             });
         });
     }
@@ -220,13 +184,9 @@ server.registerTool(
     {
         title: 'Get Current Game State',
         description: 'Returns the current state of the game',
-        inputSchema: {
-            sessionId: z.string(),
-        },
     },
-    async function (args) {
-        const { sessionId } = args;
-        const activeGame = activeGames.get(sessionId);
+    async function (params: { sessionId: string }) {
+        const activeGame = activeGames.get(params.sessionId);
         if (!activeGame) {
             throw new Error('Game session not found');
         }
@@ -234,19 +194,16 @@ server.registerTool(
         const { session } = activeGame;
         let boardDisplay = '';
         for (let i = 0; i < 9; i += 3) {
-            const row = session.board
-                .slice(i, i + 3)
-                .map((cell) => cell || i + '')
-                .join(' | ');
-            boardDisplay += row + '\\n';
-            if (i < 6) boardDisplay += '---------\\n';
+            const row = session.board.slice(i, i + 3).map(cell => cell || i + '').join(' | ');
+            boardDisplay += row + '\n';
+            if (i < 6) boardDisplay += '---------\n';
         }
-
+        
         return {
             content: [
                 {
                     type: 'text',
-                    text: `Current board:\\n${boardDisplay}\\nCurrent player: ${session.currentPlayer}`,
+                    text: `Current board:\n${boardDisplay}\nCurrent player: ${session.currentPlayer}`,
                 },
             ],
         };
@@ -259,20 +216,16 @@ server.registerTool(
     {
         title: 'End Game Session',
         description: 'Cleans up and ends the game session',
-        inputSchema: {
-            sessionId: z.string(),
-        },
     },
-    async function (args) {
-        const { sessionId } = args;
-        const activeGame = activeGames.get(sessionId);
+    async function (params: { sessionId: string }) {
+        const activeGame = activeGames.get(params.sessionId);
         if (!activeGame) {
             throw new Error('Game session not found');
         }
 
         const { socket } = activeGame;
         socket.disconnect();
-        activeGames.delete(sessionId);
+        activeGames.delete(params.sessionId);
 
         return {
             content: [
