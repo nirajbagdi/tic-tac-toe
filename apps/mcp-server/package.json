@@ -11,7 +11,11 @@
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.17.3",
+        "@repo/game-core": "workspace:*",
+        "@types/node-fetch": "^2.6.13",
         "express": "^4.18.3",
+        "node-fetch": "^3.3.2",
+        "socket.io-client": "^4.8.1",
         "zod": "^3.22.4"
     },
     "devDependencies": {
